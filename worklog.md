@@ -23,3 +23,24 @@ Stage Summary:
 - Flux validé : capteur BLE/démo → parseur NMEA → compteurs → file → POST text/plain vers Apps Script (évite le preflight CORS)
 - Script Google Apps Script prêt à déployer (feuille « GNSS », en-têtes automatiques, secret optionnel)
 - Artefacts : code source complet + scripts/mock-gas.ts + captures de vérification dans /home/z/my-project/download/
+
+---
+Task ID: 2
+Agent: main (Z.ai)
+Task: Retrait du mode démo + préparation au build de production
+
+Work Log:
+- Store gnss-store.ts : suppression de demoRunning/setDemoRunning, fallback device « GNSS » dans le payload
+- gnss-engine.ts : conservé uniquement injectManual (générateur de démo supprimé)
+- sensor-tab.tsx : carte « Mode démo » et références supprimées ; page.tsx : badge « Démo » retiré (statut = connecté/veille)
+- frame-log.tsx : texte d'état vide corrigé ; zéro référence « démo » dans src/ (vérifié par grep)
+- Artefacts de test supprimés (scripts/mock-gas.ts, captures de vérification)
+- PWA : manifest.json + icônes 192/512/apple-touch générées via sharp (scripts/make-icons.ts), metadata manifest + appleWebApp dans layout.tsx
+- Compilabilité vérifiée : bunx tsc --noEmit → 0 erreur dans src/ (seuls examples/ et skills/ du scaffold ont des erreurs, hors build) ; lint propre ; serveur HTTP 200
+- Re-test navigateur : injection manuelle → compteurs → position (48° 51.667' N) → file d'attente ; manifest/icônes servies en 200 ; aucune erreur console
+- Emballé le projet : download/gnss-link.zip (92 fichiers : src/, public/, prisma/, configs, lockfile — sans node_modules/.next/artefacts sandbox)
+
+Stage Summary:
+- App « production-ready » : plus aucun mode démo, sources propres, PWA installable (écran d'accueil Android/iOS)
+- Livrables : application sur la route / (port 3000) + gnss-link.zip dans /home/z/my-project/download/
+- Build utilisateur : npm install && npm run build && npm start (ou bun), HTTPS requis pour Web Bluetooth

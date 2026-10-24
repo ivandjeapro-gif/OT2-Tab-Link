@@ -18,13 +18,12 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useBle } from '@/hooks/use-ble';
-import { injectManual, startDemo, stopDemo } from '@/lib/gnss-engine';
+import { injectManual } from '@/lib/gnss-engine';
 import { useGnssStore } from '@/lib/gnss-store';
 import {
   Bluetooth,
   BluetoothConnected,
   ClipboardPaste,
-  FlaskConical,
   Keyboard,
   Pause,
   Play,
@@ -37,7 +36,6 @@ export function SensorTab() {
   const { supported, connecting, connect, disconnect } = useBle();
   const connected = useGnssStore((s) => s.connected);
   const deviceName = useGnssStore((s) => s.deviceName);
-  const demoRunning = useGnssStore((s) => s.demoRunning);
   const listeningPaused = useGnssStore((s) => s.listeningPaused);
   const toggleListeningPaused = useGnssStore((s) => s.toggleListeningPaused);
   const customServiceUuid = useGnssStore((s) => s.customServiceUuid);
@@ -107,7 +105,7 @@ export function SensorTab() {
           ) : (
             <Button
               onClick={connect}
-              disabled={connecting || demoRunning}
+              disabled={connecting}
               className="w-full h-11 bg-emerald-600 hover:bg-emerald-700"
             >
               {connecting ? (
@@ -123,17 +121,12 @@ export function SensorTab() {
               )}
             </Button>
           )}
-          {demoRunning && !connected && (
-            <p className="text-xs text-amber-600">
-              Le mode démo est actif : arrêtez-le avant de connecter un capteur réel.
-            </p>
-          )}
           {!supported && (
             <p className="text-xs text-muted-foreground leading-relaxed">
               <Badge variant="secondary" className="mr-1">Info</Badge>
               Web Bluetooth requiert Chrome/Edge (Android, Windows, macOS) en HTTPS. iOS n&apos;est
               pas supporté. Le Bluetooth Classique (SPP, ex. HC-05) n&apos;est pas accessible depuis
-              un navigateur — utilisez un module BLE ou les modes démo/manuel.
+              un navigateur : utilisez un module BLE ou la saisie manuelle.
             </p>
           )}
 
@@ -176,35 +169,6 @@ export function SensorTab() {
               </AccordionContent>
             </AccordionItem>
           </Accordion>
-        </CardContent>
-      </Card>
-
-      {/* Mode démo */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <FlaskConical className="h-4 w-4 text-amber-600" />
-            Mode démo
-          </CardTitle>
-          <CardDescription>
-            Simule un récepteur GNSS (7 trames/s) pour tester le compteur et l&apos;envoi.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {demoRunning ? (
-            <Button variant="outline" className="w-full h-11" onClick={stopDemo}>
-              Arrêter la démo
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              className="w-full h-11 border-amber-300 text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950"
-              onClick={startDemo}
-              disabled={connected}
-            >
-              Lancer la démo
-            </Button>
-          )}
         </CardContent>
       </Card>
 

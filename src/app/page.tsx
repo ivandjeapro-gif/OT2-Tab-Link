@@ -12,7 +12,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   BarChart3,
   BluetoothConnected,
-  FlaskConical,
   MapPin,
   Radar,
   Satellite,
@@ -57,7 +56,6 @@ export default function Home() {
 
   const connected = useGnssStore((s) => s.connected);
   const deviceName = useGnssStore((s) => s.deviceName);
-  const demoRunning = useGnssStore((s) => s.demoRunning);
   const position = useGnssStore((s) => s.position);
   const totalCount = useGnssStore((s) => s.totalCount);
   const autoForward = useGnssStore((s) => s.autoForward);
@@ -81,11 +79,6 @@ export default function Home() {
     <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white gap-1 max-w-[45%]">
       <BluetoothConnected className="h-3 w-3 shrink-0" />
       <span className="truncate">{deviceName || 'BLE'}</span>
-    </Badge>
-  ) : demoRunning ? (
-    <Badge className="bg-amber-500 hover:bg-amber-500 text-white gap-1">
-      <FlaskConical className="h-3 w-3" />
-      Démo
     </Badge>
   ) : (
     <Badge variant="secondary" className="gap-1">

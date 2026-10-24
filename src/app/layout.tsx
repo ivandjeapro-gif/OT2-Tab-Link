@@ -26,8 +26,15 @@ export const metadata: Metadata = {
   description:
     "Application mobile pour capteur GNSS : réception des trames NMEA via Bluetooth LE, comptage en temps réel et redirection vers Google Apps Script.",
   keywords: ["GNSS", "GPS", "NMEA", "Bluetooth LE", "Google Apps Script", "compteur"],
+  manifest: "/manifest.json",
   icons: {
-    icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
+    icon: "/icon-192.png",
+    apple: "/apple-touch-icon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    title: "GNSS Link",
+    statusBarStyle: "default",
   },
 };
 

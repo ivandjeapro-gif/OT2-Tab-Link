@@ -48,7 +48,6 @@ interface GnssState {
   // ── Connexion / source ──────────────────────────────
   connected: boolean;
   deviceName: string;
-  demoRunning: boolean;
   listeningPaused: boolean;
 
   // ── Données volatiles ───────────────────────────────
@@ -95,7 +94,6 @@ interface GnssState {
   resetSendStats: () => void;
   testConnection: () => Promise<void>;
   setConnected: (v: boolean, name?: string) => void;
-  setDemoRunning: (v: boolean) => void;
   toggleListeningPaused: () => void;
   setGasUrl: (v: string) => void;
   setSecret: (v: string) => void;
@@ -111,7 +109,6 @@ export const useGnssStore = create<GnssState>()(
     (set, get) => ({
       connected: false,
       deviceName: '',
-      demoRunning: false,
       listeningPaused: false,
 
       frames: [],
@@ -227,7 +224,7 @@ export const useGnssStore = create<GnssState>()(
         set({ sending: true });
         const payload = {
           secret: s.secret || undefined,
-          device: s.deviceName || (s.demoRunning ? 'Mode démo' : 'inconnu'),
+          device: s.deviceName || 'GNSS',
           sentAt: new Date().toISOString(),
           messages: ready.map((q) => ({
             receivedAt: new Date(q.frame.receivedAt).toISOString(),
@@ -334,7 +331,6 @@ export const useGnssStore = create<GnssState>()(
       // ──────────────────────────────────────────────────
       setConnected: (v, name) =>
         set((st) => ({ connected: v, deviceName: name !== undefined ? name : st.deviceName })),
-      setDemoRunning: (v) => set({ demoRunning: v }),
       toggleListeningPaused: () => set((st) => ({ listeningPaused: !st.listeningPaused })),
       setGasUrl: (v) => set({ gasUrl: v }),
       setSecret: (v) => set({ secret: v }),

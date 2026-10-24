@@ -41,7 +41,7 @@ export function FrameLog({ limit, className }: { limit?: number; className?: str
         <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
           Aucune trame reçue pour l&apos;instant.
           <br />
-          Connectez un capteur ou lancez la démo.
+          Connectez un capteur ou collez des trames manuellement.
         </div>
       ) : (
         <ScrollArea className="h-72 rounded-lg border">
