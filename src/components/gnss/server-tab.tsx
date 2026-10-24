@@ -187,7 +187,7 @@ export function ServerTab() {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
-            <CloudUpload className="h-4 w-4 text-emerald-600" />
+            <CloudUpload className="h-4 w-4 text-amber-600" />
             Destination Apps Script
           </CardTitle>
           <CardDescription>
@@ -299,14 +299,14 @@ export function ServerTab() {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
-            <ListChecks className="h-4 w-4 text-emerald-600" />
+            <ListChecks className="h-4 w-4 text-amber-600" />
             État de la redirection
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="rounded-lg border p-2.5">
-              <p className="text-xl font-semibold tabular-nums text-emerald-600">
+              <p className="text-xl font-semibold tabular-nums text-amber-600">
                 {forwardedCount}
               </p>
               <p className="text-xs text-muted-foreground">envoyées</p>
@@ -324,7 +324,7 @@ export function ServerTab() {
           {lastSendAt && (
             <div className="flex items-start gap-2 text-xs rounded-lg border p-2.5">
               {lastSendOk ? (
-                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                <CheckCircle2 className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
               ) : (
                 <XCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
               )}
@@ -342,7 +342,7 @@ export function ServerTab() {
             <Button
               onClick={handleFlush}
               disabled={queue.length === 0 || !gasUrl.trim()}
-              className="flex-1 h-10 bg-emerald-600 hover:bg-emerald-700"
+              className="flex-1 h-10 bg-amber-600 hover:bg-amber-700"
             >
               <Send className="h-4 w-4 mr-2" />
               Envoyer maintenant ({queue.length})
@@ -369,7 +369,7 @@ export function ServerTab() {
                         variant="outline"
                         className={
                           l.ok
-                            ? 'shrink-0 bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                            ? 'shrink-0 bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
                             : 'shrink-0 bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300'
                         }
                       >
@@ -389,7 +389,7 @@ export function ServerTab() {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
-            <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+            <FileSpreadsheet className="h-4 w-4 text-amber-600" />
             Installer le serveur (5 min)
           </CardTitle>
           <CardDescription>

@@ -93,7 +93,7 @@ export function CounterTab() {
           <Button
             key={r.key}
             variant={role === r.key ? 'default' : 'outline'}
-            className={role === r.key ? 'bg-emerald-600 hover:bg-emerald-700' : ''}
+            className={role === r.key ? 'bg-amber-600 hover:bg-amber-700' : ''}
             onClick={() => setRole(r.key)}
           >
             {r.label}
@@ -108,7 +108,7 @@ export function CounterTab() {
             <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">
               Trames reçues — {role === 'rover' ? 'Rover' : 'Base'}
             </p>
-            <p className="text-6xl font-bold tabular-nums text-emerald-600">{totalCount}</p>
+            <p className="text-6xl font-bold tabular-nums text-amber-600">{totalCount}</p>
             <div className="flex justify-center gap-6 mt-3 text-sm text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <Timer className="h-3.5 w-3.5" />
@@ -134,7 +134,7 @@ export function CounterTab() {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-base">
-            <Activity className="h-4 w-4 text-emerald-600" />
+            <Activity className="h-4 w-4 text-amber-600" />
             Cadence de réception
           </CardTitle>
           <CardDescription>Trames par seconde — 60 dernières secondes.</CardDescription>
@@ -145,8 +145,8 @@ export function CounterTab() {
               <AreaChart data={hist} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
                 <defs>
                   <linearGradient id="rateFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#059669" stopOpacity={0.35} />
-                    <stop offset="100%" stopColor="#059669" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#D97706" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="#D97706" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="t" tick={{ fontSize: 9 }} interval={19} tickLine={false} axisLine={false} />
@@ -159,7 +159,7 @@ export function CounterTab() {
                 <Area
                   type="monotone"
                   dataKey="v"
-                  stroke="#059669"
+                  stroke="#D97706"
                   strokeWidth={2}
                   fill="url(#rateFill)"
                   isAnimationActive={false}
@@ -192,7 +192,7 @@ export function CounterTab() {
                 </div>
                 <div className="h-2 rounded-full bg-muted overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-emerald-500 transition-all duration-300"
+                    className="h-full rounded-full bg-amber-500 transition-all duration-300"
                     style={{ width: `${Math.max(pct, 2)}%` }}
                   />
                 </div>
@@ -206,14 +206,14 @@ export function CounterTab() {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-base">
-            <ShieldCheck className="h-4 w-4 text-emerald-600" />
+            <ShieldCheck className="h-4 w-4 text-amber-600" />
             Intégrité des données
           </CardTitle>
           <CardDescription>Validation du checksum XOR de chaque trame.</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-3">
           <div className="rounded-lg border p-3 flex items-center gap-2.5">
-            <CheckCheck className="h-5 w-5 text-emerald-600 shrink-0" />
+            <CheckCheck className="h-5 w-5 text-amber-600 shrink-0" />
             <div>
               <p className="text-xl font-semibold tabular-nums">{checksumOkCount}</p>
               <p className="text-xs text-muted-foreground">valides ({okPct} %)</p>

@@ -7,7 +7,7 @@ import { useGnssStore, type GnssRole } from '@/lib/gnss-store';
 import { CheckCircle2, Eraser, Radio, XCircle } from 'lucide-react';
 
 const TYPE_COLORS: Record<string, string> = {
-  GGA: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
+  GGA: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
   RMC: 'bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300',
   GLL: 'bg-lime-100 text-lime-800 dark:bg-lime-950 dark:text-lime-300',
   VTG: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
@@ -33,7 +33,7 @@ export function FrameLog({
     <div className={className}>
       <div className="flex items-center justify-between mb-2">
         <p className="text-sm font-medium flex items-center gap-1.5">
-          <Radio className="h-4 w-4 text-emerald-600" />
+          <Radio className="h-4 w-4 text-amber-600" />
           Journal des trames
           <span className="text-muted-foreground font-normal">
             ({frames.length})
@@ -66,7 +66,7 @@ export function FrameLog({
                   {f.raw}
                 </span>
                 {f.checksumOk ? (
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
                 ) : (
                   <XCircle className="h-3.5 w-3.5 text-red-500 shrink-0 mt-0.5" />
                 )}

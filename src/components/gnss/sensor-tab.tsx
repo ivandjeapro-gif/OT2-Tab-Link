@@ -103,7 +103,7 @@ export function SensorTab({ role }: { role: GnssRole }) {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
-            <Bluetooth className="h-4 w-4 text-emerald-600" />
+            <Bluetooth className="h-4 w-4 text-amber-600" />
             Capteur Bluetooth LE
           </CardTitle>
           <CardDescription>
@@ -114,9 +114,9 @@ export function SensorTab({ role }: { role: GnssRole }) {
         </CardHeader>
         <CardContent className="space-y-3">
           {activeViaBle ? (
-            <div className="flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/40 p-3">
+            <div className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/40 p-3">
               <div className="flex items-center gap-2 min-w-0">
-                <BluetoothConnected className="h-5 w-5 text-emerald-600 shrink-0" />
+                <BluetoothConnected className="h-5 w-5 text-amber-600 shrink-0" />
                 <div className="min-w-0">
                   <p className="text-sm font-medium truncate">{deviceName || 'Périphérique BLE'}</p>
                   <p className="text-xs text-muted-foreground">
@@ -137,7 +137,7 @@ export function SensorTab({ role }: { role: GnssRole }) {
             <Button
               onClick={connect}
               disabled={connecting || activeElsewhere || activeViaSerial}
-              className="w-full h-11 bg-emerald-600 hover:bg-emerald-700"
+              className="w-full h-11 bg-amber-600 hover:bg-amber-700"
             >
               {connecting ? (
                 <>
@@ -228,9 +228,9 @@ export function SensorTab({ role }: { role: GnssRole }) {
         </CardHeader>
         <CardContent className="space-y-3">
           {activeViaSerial ? (
-            <div className="flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/40 p-3">
+            <div className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/40 p-3">
               <div className="flex items-center gap-2 min-w-0">
-                <Usb className="h-5 w-5 text-emerald-600 shrink-0" />
+                <Usb className="h-5 w-5 text-amber-600 shrink-0" />
                 <div className="min-w-0">
                   <p className="text-sm font-medium truncate">{deviceName}</p>
                   <p className="text-xs text-muted-foreground">

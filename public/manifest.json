@@ -1,13 +1,13 @@
 {
-  "name": "GNSS Link — Compteur & passerelle Apps Script",
-  "short_name": "GNSS Link",
-  "description": "Réception des trames NMEA d'un capteur GNSS via Bluetooth LE, comptage en temps réel et redirection vers Google Apps Script.",
+  "name": "OreTracking-Link — Compteur & passerelle Apps Script",
+  "short_name": "OreTracking-Link",
+  "description": "Réception des trames NMEA d'un capteur GNSS via Bluetooth LE ou USB série, comptage en temps réel et redirection vers Google Apps Script.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#fafafa",
-  "theme_color": "#059669",
+  "theme_color": "#D97706",
   "lang": "fr",
   "icons": [
     {

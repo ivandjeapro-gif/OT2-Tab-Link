@@ -15,7 +15,6 @@ import {
   MapPin,
   Radar,
   RadioTower,
-  Satellite,
   UploadCloud,
   WifiOff,
 } from 'lucide-react';
@@ -82,7 +81,7 @@ export default function Home() {
   const hasPos = position?.lat !== undefined && position?.lon !== undefined;
 
   const statusBadge = connected ? (
-    <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white gap-1 max-w-[45%]">
+    <Badge className="bg-amber-600 hover:bg-amber-600 text-white gap-1 max-w-[45%]">
       <BluetoothConnected className="h-3 w-3 shrink-0" />
       <span className="truncate">
         {connectedRole === 'base' ? 'Base' : 'Rover'} · {deviceName || 'connecté'}
@@ -103,11 +102,14 @@ export default function Home() {
       <header className="sticky top-0 z-20 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto max-w-lg px-4 py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="h-9 w-9 rounded-xl bg-emerald-600 flex items-center justify-center shrink-0">
-              <Satellite className="h-5 w-5 text-white" />
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo.png"
+              alt="OreTracking-Link"
+              className="h-9 w-9 rounded-xl object-contain shrink-0 bg-white ring-1 ring-black/5"
+            />
             <div className="min-w-0">
-              <h1 className="text-base font-bold leading-tight">GNSS Link</h1>
+              <h1 className="text-base font-bold leading-tight">OreTracking-Link</h1>
               <p className="text-xs text-muted-foreground leading-tight">
                 Compteur &amp; passerelle Apps Script
               </p>
@@ -116,8 +118,8 @@ export default function Home() {
           <div className="flex items-center gap-1.5">
             {autoForward && (
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
               </span>
             )}
             {statusBadge}
@@ -160,7 +162,7 @@ export default function Home() {
                 key={key}
                 onClick={() => setTab(key)}
                 className={`flex flex-col items-center gap-0.5 py-2.5 text-[11px] transition-colors ${
-                  active ? 'text-emerald-600 font-semibold' : 'text-muted-foreground'
+                  active ? 'text-amber-600 font-semibold' : 'text-muted-foreground'
                 }`}
                 aria-current={active ? 'page' : undefined}
               >

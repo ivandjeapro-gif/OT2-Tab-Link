@@ -18,14 +18,14 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#059669",
+  themeColor: "#D97706",
 };
 
 export const metadata: Metadata = {
-  title: "GNSS Link — Compteur & passerelle Apps Script",
+  title: "OreTracking-Link — Compteur & passerelle Apps Script",
   description:
-    "Application mobile pour capteur GNSS : réception des trames NMEA via Bluetooth LE, comptage en temps réel et redirection vers Google Apps Script.",
-  keywords: ["GNSS", "GPS", "NMEA", "Bluetooth LE", "Google Apps Script", "compteur"],
+    "Application mobile pour capteur GNSS : réception des trames NMEA via Bluetooth LE ou USB série, comptage en temps réel et redirection vers Google Apps Script.",
+  keywords: ["GNSS", "GPS", "NMEA", "Bluetooth LE", "Google Apps Script", "compteur", "mine", "RTK"],
   manifest: "/manifest.json",
   icons: {
     icon: "/icon-192.png",
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: "GNSS Link",
+    title: "OreTracking-Link",
     statusBarStyle: "default",
   },
 };

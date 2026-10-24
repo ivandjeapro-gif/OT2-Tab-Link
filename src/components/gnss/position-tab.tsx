@@ -67,7 +67,7 @@ export function PositionTab() {
           <Button
             key={r.key}
             variant={role === r.key ? 'default' : 'outline'}
-            className={role === r.key ? 'bg-emerald-600 hover:bg-emerald-700' : ''}
+            className={role === r.key ? 'bg-amber-600 hover:bg-amber-700' : ''}
             onClick={() => setRole(r.key)}
           >
             {r.label}
@@ -78,7 +78,7 @@ export function PositionTab() {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
-            <MapPin className="h-4 w-4 text-emerald-600" />
+            <MapPin className="h-4 w-4 text-amber-600" />
             Position courante — {role === 'rover' ? 'Rover' : 'Base'}
           </CardTitle>
           <CardDescription>
@@ -159,7 +159,7 @@ export function PositionTab() {
                   rel="noopener noreferrer"
                   className="flex-1"
                 >
-                  <Button size="sm" className="w-full bg-emerald-600 hover:bg-emerald-700">
+                  <Button size="sm" className="w-full bg-amber-600 hover:bg-amber-700">
                     <ArrowUpRight className="h-3.5 w-3.5 mr-1.5" />
                     Ouvrir la carte
                   </Button>
@@ -218,7 +218,7 @@ export function PositionTab() {
                   <Badge
                     className={
                       position.valid
-                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                        ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
                         : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400'
                     }
                   >
