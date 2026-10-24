@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useGnssStore } from '@/lib/gnss-store';
+import { useGnssStore, type GnssRole } from '@/lib/gnss-store';
 import {
   Area,
   AreaChart,
@@ -30,12 +30,15 @@ interface Point {
   v: number;
 }
 
+const ROLES: Array<{ key: GnssRole; label: string }> = [
+  { key: 'rover', label: 'Rover' },
+  { key: 'base', label: 'Base' },
+];
+
 export function CounterTab() {
-  const totalCount = useGnssStore((s) => s.totalCount);
-  const typeCounts = useGnssStore((s) => s.typeCounts);
-  const checksumOkCount = useGnssStore((s) => s.checksumOkCount);
-  const checksumBadCount = useGnssStore((s) => s.checksumBadCount);
-  const startedAt = useGnssStore((s) => s.startedAt);
+  const [role, setRole] = useState<GnssRole>('rover');
+  const channel = useGnssStore((s) => s.channels[role]);
+  const { totalCount, typeCounts, checksumOkCount, checksumBadCount, startedAt } = channel;
   const resetCounters = useGnssStore((s) => s.resetCounters);
 
   const [hist, setHist] = useState<Point[]>([]);
@@ -43,13 +46,13 @@ export function CounterTab() {
 
   useEffect(() => {
     const compute = () => {
-      const s = useGnssStore.getState();
+      const ch = useGnssStore.getState().channels[role];
       const now = Date.now();
-      const cps = s.rateWindow.filter((t) => now - t <= 1000).length;
-      const cpm = s.rateWindow.length;
+      const cps = ch.rateWindow.filter((t) => now - t <= 1000).length;
+      const cpm = ch.rateWindow.length;
       let duration = '—';
-      if (s.startedAt) {
-        const sec = Math.floor((now - s.startedAt) / 1000);
+      if (ch.startedAt) {
+        const sec = Math.floor((now - ch.startedAt) / 1000);
         const h = Math.floor(sec / 3600);
         const m = Math.floor((sec % 3600) / 60);
         const r = sec % 60;
@@ -61,10 +64,11 @@ export function CounterTab() {
         { t: new Date(now).toLocaleTimeString('fr-FR', { hour12: false }), v: cps },
       ]);
     };
+    setHist([]);
     compute();
     const id = setInterval(compute, 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [role]);
 
   const typeRows = useMemo(
     () =>
@@ -83,12 +87,26 @@ export function CounterTab() {
 
   return (
     <div className="space-y-4">
+      {/* Sélecteur Rover / Base */}
+      <div className="grid grid-cols-2 gap-2">
+        {ROLES.map((r) => (
+          <Button
+            key={r.key}
+            variant={role === r.key ? 'default' : 'outline'}
+            className={role === r.key ? 'bg-emerald-600 hover:bg-emerald-700' : ''}
+            onClick={() => setRole(r.key)}
+          >
+            {r.label}
+          </Button>
+        ))}
+      </div>
+
       {/* Compteur principal */}
       <Card>
         <CardContent className="pt-6 pb-5">
           <div className="text-center">
             <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">
-              Trames reçues
+              Trames reçues — {role === 'rover' ? 'Rover' : 'Base'}
             </p>
             <p className="text-6xl font-bold tabular-nums text-emerald-600">{totalCount}</p>
             <div className="flex justify-center gap-6 mt-3 text-sm text-muted-foreground">
@@ -216,22 +234,23 @@ export function CounterTab() {
         <AlertDialogTrigger asChild>
           <Button variant="outline" className="w-full text-red-600 border-red-200 hover:bg-red-50 dark:hover:bg-red-950">
             <RotateCcw className="h-4 w-4 mr-2" />
-            Réinitialiser les compteurs
+            Réinitialiser les compteurs {role === 'rover' ? 'Rover' : 'Base'}
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Remettre les compteurs à zéro ?</AlertDialogTitle>
             <AlertDialogDescription>
-              Les totaux, la répartition par type et les statistiques d&apos;intégrité seront
-              effacés. La file d&apos;attente d&apos;envoi et les réglages sont conservés.
+              Les totaux, la répartition par type et les statistiques d&apos;intégrité pour{' '}
+              {role === 'rover' ? 'le Rover' : 'la Base'} seront effacés. La file d&apos;attente
+              d&apos;envoi et les réglages sont conservés.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 hover:bg-red-700"
-              onClick={resetCounters}
+              onClick={() => resetCounters(role)}
             >
               Réinitialiser
             </AlertDialogAction>

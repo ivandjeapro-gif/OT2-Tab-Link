@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useGnssStore } from '@/lib/gnss-store';
+import { useGnssStore, type GnssRole } from '@/lib/gnss-store';
 import { useToast } from '@/hooks/use-toast';
 
 /** Services UART série Bluetooth LE courants (modules GNSS / ponts série). */
@@ -19,7 +19,7 @@ function isValidUuid(v: string): boolean {
   );
 }
 
-export function useBle() {
+export function useBle(role: GnssRole) {
   const [supported, setSupported] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const deviceRef = useRef<BleDevice | null>(null);
@@ -53,7 +53,7 @@ export function useBle() {
     charRef.current = null;
     deviceRef.current = null;
     bufferRef.current = '';
-    useGnssStore.getState().setConnected(false, '');
+    useGnssStore.getState().setConnected(false);
   }, []);
 
   const onValue = useCallback((event: Event) => {
@@ -69,11 +69,11 @@ export function useBle() {
         .replace(/\r/g, '')
         .trim();
       bufferRef.current = bufferRef.current.slice(idx + 1);
-      if (line) useGnssStore.getState().ingestLine(line);
+      if (line) useGnssStore.getState().ingestLine(line, role);
     }
     // Garde-fou : trames sans fin de ligne
     if (bufferRef.current.length > 4096) bufferRef.current = '';
-  }, []);
+  }, [role]);
 
   const onDisconnected = useCallback(() => {
     cleanup();
@@ -137,7 +137,7 @@ export function useBle() {
       charRef.current = tx;
       deviceRef.current = device;
 
-      store.setConnected(true, device.name || 'Périphérique BLE');
+      store.setConnected(true, device.name || 'Périphérique BLE', role, 'ble');
       toast({
         title: 'Capteur connecté',
         description: `${device.name || 'Périphérique BLE'} — écoute des trames NMEA…`,
@@ -145,7 +145,10 @@ export function useBle() {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       if (msg.includes('User cancelled') || msg.includes('cancel')) {
-        // Sélection annulée par l'utilisateur : silencieux
+        toast({
+          title: 'Aucun appareil sélectionné',
+          description: 'La fenêtre de sélection Bluetooth a été fermée sans choisir de capteur.',
+        });
       } else {
         toast({
           title: 'Échec de connexion',
@@ -157,7 +160,7 @@ export function useBle() {
     } finally {
       setConnecting(false);
     }
-  }, [onValue, onDisconnected, cleanup, toast]);
+  }, [onValue, onDisconnected, cleanup, toast, role]);
 
   const disconnect = useCallback(() => {
     cleanup();

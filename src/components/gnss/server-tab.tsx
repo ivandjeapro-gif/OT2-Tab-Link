@@ -67,7 +67,7 @@ function doPost(e) {
     let sheet = ss.getSheetByName(SHEET_NAME);
     if (!sheet) sheet = ss.insertSheet(SHEET_NAME);
     if (sheet.getLastRow() === 0) {
-      sheet.appendRow(['Reçu le', 'Type', 'Heure UTC', 'Date UTC', 'Latitude',
+      sheet.appendRow(['Reçu le', 'Rôle', 'Appareil', 'Type', 'Heure UTC', 'Date UTC', 'Latitude',
         'Longitude', 'Altitude (m)', 'Satellites', 'Qualité', 'Vitesse (km/h)',
         'Cap (°)', 'Fix valide', 'Checksum', 'Trame brute']);
     }
@@ -76,6 +76,7 @@ function doPost(e) {
     const rows = messages.map(function (m) {
       return [
         m.receivedAt || now.toISOString(),
+        m.role || '', m.device || '',
         m.type || '', m.time || '', m.date || '',
         m.lat === undefined ? '' : m.lat,
         m.lon === undefined ? '' : m.lon,
@@ -434,9 +435,9 @@ export function ServerTab() {
 
           <p className="text-xs text-muted-foreground flex items-start gap-1.5">
             <Wrench className="h-3.5 w-3.5 shrink-0 mt-0.5" />
-            Les trames arrivent dans la feuille « GNSS » : type, position, vitesse, satellites et
-            texte brut. Modifiez <code>SHEET_NAME</code> ou <code>SECRET</code> si besoin — puis
-            redéployez une nouvelle version.
+            Les trames arrivent dans la feuille « GNSS » : rôle (Rover/Base), appareil, type,
+            position, vitesse, satellites et texte brut. Modifiez <code>SHEET_NAME</code> ou{' '}
+            <code>SECRET</code> si besoin — puis redéployez une nouvelle version.
           </p>
         </CardContent>
       </Card>

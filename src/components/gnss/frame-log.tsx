@@ -3,7 +3,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useGnssStore } from '@/lib/gnss-store';
+import { useGnssStore, type GnssRole } from '@/lib/gnss-store';
 import { CheckCircle2, Eraser, Radio, XCircle } from 'lucide-react';
 
 const TYPE_COLORS: Record<string, string> = {
@@ -16,8 +16,16 @@ const TYPE_COLORS: Record<string, string> = {
   AUTRE: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400',
 };
 
-export function FrameLog({ limit, className }: { limit?: number; className?: string }) {
-  const frames = useGnssStore((s) => s.frames);
+export function FrameLog({
+  role,
+  limit,
+  className,
+}: {
+  role: GnssRole;
+  limit?: number;
+  className?: string;
+}) {
+  const frames = useGnssStore((s) => s.channels[role].frames);
   const clearFrames = useGnssStore((s) => s.clearFrames);
   const shown = limit ? frames.slice(0, limit) : frames;
 
@@ -31,7 +39,7 @@ export function FrameLog({ limit, className }: { limit?: number; className?: str
             ({frames.length})
           </span>
         </p>
-        <Button variant="ghost" size="sm" onClick={clearFrames} className="h-8 text-muted-foreground">
+        <Button variant="ghost" size="sm" onClick={() => clearFrames(role)} className="h-8 text-muted-foreground">
           <Eraser className="h-3.5 w-3.5 mr-1" />
           Effacer
         </Button>

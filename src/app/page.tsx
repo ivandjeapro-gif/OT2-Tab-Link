@@ -14,15 +14,17 @@ import {
   BluetoothConnected,
   MapPin,
   Radar,
+  RadioTower,
   Satellite,
   UploadCloud,
   WifiOff,
 } from 'lucide-react';
 
-type TabKey = 'capteur' | 'position' | 'compteur' | 'serveur';
+type TabKey = 'rover' | 'base' | 'position' | 'compteur' | 'serveur';
 
 const TABS: Array<{ key: TabKey; label: string; icon: typeof Radar }> = [
-  { key: 'capteur', label: 'Capteur', icon: Radar },
+  { key: 'rover', label: 'Rover', icon: Radar },
+  { key: 'base', label: 'Base', icon: RadioTower },
   { key: 'position', label: 'Position', icon: MapPin },
   { key: 'compteur', label: 'Compteur', icon: BarChart3 },
   { key: 'serveur', label: 'Serveur', icon: UploadCloud },
@@ -52,14 +54,18 @@ function useHydrated() {
 
 export default function Home() {
   const hydrated = useHydrated();
-  const [tab, setTab] = useState<TabKey>('capteur');
+  const [tab, setTab] = useState<TabKey>('rover');
 
   const connected = useGnssStore((s) => s.connected);
-  const deviceName = useGnssStore((s) => s.deviceName);
-  const position = useGnssStore((s) => s.position);
-  const totalCount = useGnssStore((s) => s.totalCount);
+  const connectedRole = useGnssStore((s) => s.connectedRole);
+  const channels = useGnssStore((s) => s.channels);
   const autoForward = useGnssStore((s) => s.autoForward);
   const queueLength = useGnssStore((s) => s.queue.length);
+
+  const deviceName = connectedRole ? channels[connectedRole].deviceName : '';
+  const activeChannel = channels[connectedRole ?? 'rover'];
+  const position = activeChannel.position;
+  const totalCount = channels.rover.totalCount + channels.base.totalCount;
 
   if (!hydrated) {
     return (
@@ -78,7 +84,9 @@ export default function Home() {
   const statusBadge = connected ? (
     <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white gap-1 max-w-[45%]">
       <BluetoothConnected className="h-3 w-3 shrink-0" />
-      <span className="truncate">{deviceName || 'BLE'}</span>
+      <span className="truncate">
+        {connectedRole === 'base' ? 'Base' : 'Rover'} · {deviceName || 'connecté'}
+      </span>
     </Badge>
   ) : (
     <Badge variant="secondary" className="gap-1">
@@ -131,7 +139,8 @@ export default function Home() {
 
       {/* Contenu */}
       <main className="flex-1 mx-auto w-full max-w-lg px-4 pt-4 pb-24">
-        {tab === 'capteur' && <SensorTab />}
+        {tab === 'rover' && <SensorTab role="rover" />}
+        {tab === 'base' && <SensorTab role="base" />}
         {tab === 'position' && <PositionTab />}
         {tab === 'compteur' && <CounterTab />}
         {tab === 'serveur' && <ServerTab />}
@@ -143,7 +152,7 @@ export default function Home() {
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         aria-label="Navigation principale"
       >
-        <div className="mx-auto max-w-lg grid grid-cols-4">
+        <div className="mx-auto max-w-lg grid grid-cols-5">
           {TABS.map(({ key, label, icon: Icon }) => {
             const active = tab === key;
             return (

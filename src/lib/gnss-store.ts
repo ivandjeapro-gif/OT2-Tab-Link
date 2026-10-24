@@ -5,6 +5,9 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { v4 as uuid } from 'uuid';
 import { parseNmea } from './nmea';
 
+export type GnssRole = 'rover' | 'base';
+export type ConnectionVia = 'ble' | 'serial';
+
 export interface GnssFrame {
   id: string;
   /** Époque ms de réception */
@@ -13,6 +16,8 @@ export interface GnssFrame {
   type: string;
   talker: string;
   checksumOk: boolean;
+  /** Source de la trame : récepteur mobile (rover) ou fixe (base) */
+  role: GnssRole;
   time?: string;
   date?: string;
   lat?: number;
@@ -44,13 +49,8 @@ export interface SendLogEntry {
 const FRAMES_CAP = 80;
 const QUEUE_CAP = 1000;
 
-interface GnssState {
-  // ── Connexion / source ──────────────────────────────
-  connected: boolean;
+export interface RoleChannel {
   deviceName: string;
-  listeningPaused: boolean;
-
-  // ── Données volatiles ───────────────────────────────
   frames: GnssFrame[];
   position: GnssFrame | null;
   speedKmh: number | null;
@@ -58,13 +58,40 @@ interface GnssState {
   lastAlt: number | null;
   lastSat: number | null;
   rateWindow: number[];
-
-  // ── Compteurs (persistés) ───────────────────────────
   totalCount: number;
   typeCounts: Record<string, number>;
   checksumOkCount: number;
   checksumBadCount: number;
   startedAt: number | null;
+}
+
+function emptyChannel(): RoleChannel {
+  return {
+    deviceName: '',
+    frames: [],
+    position: null,
+    speedKmh: null,
+    course: null,
+    lastAlt: null,
+    lastSat: null,
+    rateWindow: [],
+    totalCount: 0,
+    typeCounts: {},
+    checksumOkCount: 0,
+    checksumBadCount: 0,
+    startedAt: null,
+  };
+}
+
+interface GnssState {
+  // ── Connexion / source ──────────────────────────────
+  connected: boolean;
+  connectedRole: GnssRole | null;
+  connectedVia: ConnectionVia | null;
+  listeningPaused: boolean;
+
+  // ── Données par rôle (rover / base) ─────────────────
+  channels: Record<GnssRole, RoleChannel>;
 
   // ── Redirection (persistés sauf file récente) ───────
   queue: QueueItem[];
@@ -84,16 +111,17 @@ interface GnssState {
   batchIntervalSec: number;
   customServiceUuid: string;
   customCharUuid: string;
+  serialBaudRate: number;
 
   // ── Actions ─────────────────────────────────────────
-  ingestLine: (line: string) => void;
-  resetCounters: () => void;
-  clearFrames: () => void;
+  ingestLine: (line: string, role: GnssRole) => void;
+  resetCounters: (role: GnssRole) => void;
+  clearFrames: (role: GnssRole) => void;
   flushQueue: (force?: boolean) => Promise<void>;
   clearQueue: () => void;
   resetSendStats: () => void;
   testConnection: () => Promise<void>;
-  setConnected: (v: boolean, name?: string) => void;
+  setConnected: (v: boolean, name?: string, role?: GnssRole, via?: ConnectionVia) => void;
   toggleListeningPaused: () => void;
   setGasUrl: (v: string) => void;
   setSecret: (v: string) => void;
@@ -102,28 +130,21 @@ interface GnssState {
   setBatchIntervalSec: (v: number) => void;
   setCustomServiceUuid: (v: string) => void;
   setCustomCharUuid: (v: string) => void;
+  setSerialBaudRate: (v: number) => void;
 }
 
 export const useGnssStore = create<GnssState>()(
   persist(
     (set, get) => ({
       connected: false,
-      deviceName: '',
+      connectedRole: null,
+      connectedVia: null,
       listeningPaused: false,
 
-      frames: [],
-      position: null,
-      speedKmh: null,
-      course: null,
-      lastAlt: null,
-      lastSat: null,
-      rateWindow: [],
-
-      totalCount: 0,
-      typeCounts: {},
-      checksumOkCount: 0,
-      checksumBadCount: 0,
-      startedAt: null,
+      channels: {
+        rover: emptyChannel(),
+        base: emptyChannel(),
+      },
 
       queue: [],
       forwardedCount: 0,
@@ -141,23 +162,25 @@ export const useGnssStore = create<GnssState>()(
       batchIntervalSec: 30,
       customServiceUuid: '',
       customCharUuid: '',
+      serialBaudRate: 38400,
 
       // ──────────────────────────────────────────────────
-      ingestLine: (line) => {
+      ingestLine: (line, role) => {
         const s = get();
         if (s.listeningPaused) return;
         const clean = line.trim();
         if (!clean.startsWith('$') && !clean.startsWith('!')) return;
 
         const parsed = parseNmea(clean);
-        const frame: GnssFrame = { id: uuid(), receivedAt: Date.now(), ...parsed };
+        const frame: GnssFrame = { id: uuid(), receivedAt: Date.now(), role, ...parsed };
         const isPos =
           parsed.type === 'GGA' || parsed.type === 'RMC' || parsed.type === 'GLL';
 
         set((st) => {
+          const ch = st.channels[role];
           const now = frame.receivedAt;
-          const rateWindow = [...st.rateWindow, now].filter((t) => now - t <= 60_000);
-          const frames = [frame, ...st.frames].slice(0, FRAMES_CAP);
+          const rateWindow = [...ch.rateWindow, now].filter((t) => now - t <= 60_000);
+          const frames = [frame, ...ch.frames].slice(0, FRAMES_CAP);
           const queue = [
             ...st.queue,
             {
@@ -168,48 +191,65 @@ export const useGnssStore = create<GnssState>()(
             } as QueueItem,
           ].slice(-QUEUE_CAP);
 
-          return {
+          const nextChannel: RoleChannel = {
+            ...ch,
             frames,
-            queue,
             rateWindow,
-            position: isPos ? frame : st.position,
-            speedKmh: parsed.speedKmh !== undefined ? parsed.speedKmh : st.speedKmh,
-            course: parsed.course !== undefined ? parsed.course : st.course,
+            position: isPos ? frame : ch.position,
+            speedKmh: parsed.speedKmh !== undefined ? parsed.speedKmh : ch.speedKmh,
+            course: parsed.course !== undefined ? parsed.course : ch.course,
             lastAlt:
-              parsed.type === 'GGA' && parsed.alt !== undefined ? parsed.alt : st.lastAlt,
+              parsed.type === 'GGA' && parsed.alt !== undefined ? parsed.alt : ch.lastAlt,
             lastSat:
-              parsed.type === 'GGA' && parsed.sat !== undefined ? parsed.sat : st.lastSat,
-            totalCount: st.totalCount + 1,
+              parsed.type === 'GGA' && parsed.sat !== undefined ? parsed.sat : ch.lastSat,
+            totalCount: ch.totalCount + 1,
             typeCounts: {
-              ...st.typeCounts,
-              [parsed.type]: (st.typeCounts[parsed.type] || 0) + 1,
+              ...ch.typeCounts,
+              [parsed.type]: (ch.typeCounts[parsed.type] || 0) + 1,
             },
-            checksumOkCount: st.checksumOkCount + (parsed.checksumOk ? 1 : 0),
-            checksumBadCount: st.checksumBadCount + (parsed.checksumOk ? 0 : 1),
-            startedAt: st.startedAt ?? now,
+            checksumOkCount: ch.checksumOkCount + (parsed.checksumOk ? 1 : 0),
+            checksumBadCount: ch.checksumBadCount + (parsed.checksumOk ? 0 : 1),
+            startedAt: ch.startedAt ?? now,
+          };
+
+          return {
+            queue,
+            channels: { ...st.channels, [role]: nextChannel },
           };
         });
       },
 
-      resetCounters: () =>
-        set({
-          totalCount: 0,
-          typeCounts: {},
-          checksumOkCount: 0,
-          checksumBadCount: 0,
-          startedAt: null,
-        }),
+      resetCounters: (role) =>
+        set((st) => ({
+          channels: {
+            ...st.channels,
+            [role]: {
+              ...st.channels[role],
+              totalCount: 0,
+              typeCounts: {},
+              checksumOkCount: 0,
+              checksumBadCount: 0,
+              startedAt: null,
+            },
+          },
+        })),
 
-      clearFrames: () =>
-        set({
-          frames: [],
-          position: null,
-          speedKmh: null,
-          course: null,
-          lastAlt: null,
-          lastSat: null,
-          rateWindow: [],
-        }),
+      clearFrames: (role) =>
+        set((st) => ({
+          channels: {
+            ...st.channels,
+            [role]: {
+              ...st.channels[role],
+              frames: [],
+              position: null,
+              speedKmh: null,
+              course: null,
+              lastAlt: null,
+              lastSat: null,
+              rateWindow: [],
+            },
+          },
+        })),
 
       // ──────────────────────────────────────────────────
       flushQueue: async (force = false) => {
@@ -224,9 +264,11 @@ export const useGnssStore = create<GnssState>()(
         set({ sending: true });
         const payload = {
           secret: s.secret || undefined,
-          device: s.deviceName || 'GNSS',
+          app: 'GNSS Link',
           sentAt: new Date().toISOString(),
           messages: ready.map((q) => ({
+            role: q.frame.role,
+            device: s.channels[q.frame.role].deviceName || (q.frame.role === 'rover' ? 'Rover' : 'Base'),
             receivedAt: new Date(q.frame.receivedAt).toISOString(),
             type: q.frame.type,
             talker: q.frame.talker,
@@ -329,8 +371,16 @@ export const useGnssStore = create<GnssState>()(
       },
 
       // ──────────────────────────────────────────────────
-      setConnected: (v, name) =>
-        set((st) => ({ connected: v, deviceName: name !== undefined ? name : st.deviceName })),
+      setConnected: (v, name, role, via) =>
+        set((st) => ({
+          connected: v,
+          connectedRole: v ? role ?? st.connectedRole : null,
+          connectedVia: v ? via ?? st.connectedVia : null,
+          channels:
+            role && name !== undefined
+              ? { ...st.channels, [role]: { ...st.channels[role], deviceName: name } }
+              : st.channels,
+        })),
       toggleListeningPaused: () => set((st) => ({ listeningPaused: !st.listeningPaused })),
       setGasUrl: (v) => set({ gasUrl: v }),
       setSecret: (v) => set({ secret: v }),
@@ -339,10 +389,22 @@ export const useGnssStore = create<GnssState>()(
       setBatchIntervalSec: (v) => set({ batchIntervalSec: v }),
       setCustomServiceUuid: (v) => set({ customServiceUuid: v }),
       setCustomCharUuid: (v) => set({ customCharUuid: v }),
+      setSerialBaudRate: (v) => set({ serialBaudRate: v }),
     }),
     {
-      name: 'gnss-link-v1',
+      name: 'gnss-link-v2',
       storage: createJSONStorage(() => localStorage),
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<GnssState>;
+        return {
+          ...current,
+          ...p,
+          channels: {
+            rover: { ...current.channels.rover, ...p.channels?.rover },
+            base: { ...current.channels.base, ...p.channels?.base },
+          },
+        };
+      },
       partialize: (s) => ({
         // Réglages
         gasUrl: s.gasUrl,
@@ -352,12 +414,24 @@ export const useGnssStore = create<GnssState>()(
         batchIntervalSec: s.batchIntervalSec,
         customServiceUuid: s.customServiceUuid,
         customCharUuid: s.customCharUuid,
-        // Compteurs cumulés
-        totalCount: s.totalCount,
-        typeCounts: s.typeCounts,
-        checksumOkCount: s.checksumOkCount,
-        checksumBadCount: s.checksumBadCount,
-        startedAt: s.startedAt,
+        serialBaudRate: s.serialBaudRate,
+        // Compteurs cumulés par rôle
+        channels: {
+          rover: {
+            totalCount: s.channels.rover.totalCount,
+            typeCounts: s.channels.rover.typeCounts,
+            checksumOkCount: s.channels.rover.checksumOkCount,
+            checksumBadCount: s.channels.rover.checksumBadCount,
+            startedAt: s.channels.rover.startedAt,
+          },
+          base: {
+            totalCount: s.channels.base.totalCount,
+            typeCounts: s.channels.base.typeCounts,
+            checksumOkCount: s.channels.base.checksumOkCount,
+            checksumBadCount: s.channels.base.checksumBadCount,
+            startedAt: s.channels.base.startedAt,
+          },
+        },
         forwardedCount: s.forwardedCount,
         failedCount: s.failedCount,
         // File d'attente plafonnée
